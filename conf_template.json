@@ -1,0 +1,11 @@
+{
+    "BotBot" : {
+        "active" : true,
+        "token" : "Enter a bot token here"
+    },
+    "CounterBot" : {
+        "active" : true,
+        "token" : "Enter a bot token here",
+        "reply_probability" : 0.75
+    }
+}

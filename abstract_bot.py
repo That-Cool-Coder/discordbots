@@ -5,7 +5,7 @@ class AbstractBot:
     client = discord.Client()
     user = None
 
-    def __init__(self, token: str):
+    def __init__(self, token):
         self.token = token
 
         @self.client.event
@@ -36,4 +36,6 @@ class AbstractBot:
         pass
 
     def reply_to_message(self, message, reply):
-        asyncio.ensure_future(message.channel.send(reply))
+        async def a():
+            await message.channel.send(reply)
+        asyncio.ensure_future(a())
