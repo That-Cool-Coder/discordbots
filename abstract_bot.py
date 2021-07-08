@@ -36,6 +36,7 @@ class AbstractBot:
         pass
 
     def reply_to_message(self, message, reply):
-        async def a():
+        # have to create an async function to run this
+        async def async_internal():
             await message.channel.send(reply)
-        asyncio.ensure_future(a())
+        asyncio.ensure_future(async_internal())
