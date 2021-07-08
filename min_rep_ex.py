@@ -22,8 +22,8 @@ class Bot:
         self.client.run(self.token)
 
 if __name__ == '__main__':
-    bot1 = Bot('ODYwNzc5NjI5OTU3MzQ5Mzc4.YOANgA.zAX41FJt1tJXWBV0rrIoB7B5nxo')
-    bot2 = Bot('ODYwNzc5NjI5OTU3MzQ5Mzc4.YOANgA.zAX41FJt1tJXWBV0rrIoB7B5nxo')
+    bot1 = Bot('')
+    bot2 = Bot('')
     loop = asyncio.get_event_loop()
     loop.create_task(bot1.run())
     loop.create_task(bot2.run())

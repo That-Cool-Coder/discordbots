@@ -1,7 +1,7 @@
 import json
 from json.decoder import JSONDecodeError
-from multiprocessing import Process
-from multiprocessing.process import parent_process
+import subprocess
+import sys
 
 from botbot import *
 from counter_bot import *
@@ -10,8 +10,8 @@ from common import *
 CONF_FILE_NAME = 'conf.json'
 
 BOTS = {
-    'BotBot' : BotBot,
-    'CounterBot' : CounterBot
+    'BotBot' : 'botbot.py',
+    'CounterBot' : 'counter_bot.py'
 }
 
 def show_config_error(message: str):
@@ -38,12 +38,9 @@ if __name__ == '__main__':
         if config[bot_name]['active']:
             if bot_name not in BOTS:
                 show_config_error(f'Bot {bot_name} does not exist')
-            bot_arguments = config[bot_name].copy()
-            del bot_arguments['active']
-            del bot_arguments['token']
-            bot = BOTS[bot_name](config[bot_name]['token'], **bot_arguments)
-            p = Process(target=bot.run, daemon=True, )
-            p.start()
+            subprocess.Popen(
+                [sys.executable, BOTS[bot_name], config[bot_name]['token']],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     while True:
         pass

@@ -20,4 +20,4 @@ class CounterBot(AbstractBot):
                     self.reply_to_message(message, int(message.content) + 1)
 
 if __name__ == '__main__':
-    run_bot(CounterBot, reply_probability=0.75)
+    run_bot(CounterBot, {'reply_probability':float})

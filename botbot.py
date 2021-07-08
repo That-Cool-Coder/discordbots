@@ -13,7 +13,6 @@ class BotBot(AbstractBot):
     requires_trigger = True
     
     def on_ready(self):
-        print('hi')
         self.RESPONSE_TRIGGER = f'hey {self.user.name}'
         self.CONFIG_KEYWORD = f'${self.user.name}config'
         self.CONFIG_HELP = f'''```
