@@ -10,33 +10,27 @@ class AbstractBot:
 
         @self.client.event
         async def on_ready():
-            self.__on_ready()
+            await self.__on_ready()
         
         @self.client.event
         async def on_message(message):
-            self.__on_message(message)
+            await self.__on_message(message)
         
     def run(self):
         self.client.run(self.token)
     
-    def __on_ready(self):
+    async def __on_ready(self):
         print(f'Logged in as {self.client.user}')
         self.user = self.client.user
-        self.on_ready()
+        await self.on_ready()
     
-    def on_ready(self):
+    async def on_ready(self):
         '''Placeholder function to be overwitten'''
         pass
 
-    def  __on_message(self, message):
-        self.on_message(message)
+    async def  __on_message(self, message):
+        await self.on_message(message)
     
-    def on_message(self, message):
+    async def on_message(self, message):
         '''Placeholder function to be overwritten'''
         pass
-
-    def reply_to_message(self, message, reply):
-        # have to create an async function to run this
-        async def async_internal():
-            await message.channel.send(reply)
-        asyncio.ensure_future(async_internal())

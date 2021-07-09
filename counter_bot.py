@@ -10,14 +10,14 @@ class CounterBot(AbstractBot):
         super().__init__(token)
         self.reply_probability = reply_probability
 
-    def on_message(self, message):
+    async def on_message(self, message):
         # Don't reply to self
         if message.author != self.user:
             # Have a certain chance of replying
             if random.uniform(0, 1) < self.reply_probability:
                 # Only proceed if message is integer (ie only digits)
                 if message.content.isdigit():
-                    self.reply_to_message(message, int(message.content) + 1)
+                    await message.channel.send(int(message.content) + 1)
 
 if __name__ == '__main__':
     run_bot(CounterBot, {'reply_probability':float})

@@ -7,11 +7,12 @@ from botbot import *
 from counter_bot import *
 from common import *
 
-CONF_FILE_NAME = 'conf.json'
+CONF_FILE_NAME = 'autorun_conf.json'
 
-BOTS = {
+BOT_FILES = {
     'BotBot' : 'botbot.py',
-    'CounterBot' : 'counter_bot.py'
+    'CounterBot' : 'counter_bot.py',
+    'ImageScraperBot' : 'image_scraper_bot.py' 
 }
 
 def show_config_error(message: str):
@@ -36,11 +37,15 @@ finally:
 if __name__ == '__main__':
     for bot_name in config:
         if config[bot_name]['active']:
-            if bot_name not in BOTS:
+            if bot_name not in BOT_FILES:
                 show_config_error(f'Bot {bot_name} does not exist')
-            subprocess.Popen(
-                [sys.executable, BOTS[bot_name], config[bot_name]['token']],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            config_str = ''
+            for field in config[bot_name]:
+                if field == 'token' or field == 'active':
+                    continue
+                config_str += f'{field}={config[bot_name][field]} '
+            command = f'{sys.executable} {BOT_FILES[bot_name]} {config[bot_name]["token"]} {config_str}'
+            subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     while True:
         pass

@@ -12,7 +12,7 @@ class BotBot(AbstractBot):
     is_activated = True
     requires_trigger = True
     
-    def on_ready(self):
+    async def on_ready(self):
         self.RESPONSE_TRIGGER = f'hey {self.user.name}'
         self.CONFIG_KEYWORD = f'${self.user.name}config'
         self.CONFIG_HELP = f'''```
@@ -24,7 +24,7 @@ require_trigger     only reply when addressed with "{self.RESPONSE_TRIGGER}"
 no_require_trigger  reply to all messages in the channel
 ```'''
 
-    def on_message(self, message):
+    async def on_message(self, message):
         if message.author != self.user:
             reply = None
 
@@ -43,7 +43,7 @@ no_require_trigger  reply to all messages in the channel
                     reply = self.create_reply(clean_content)
 
             if reply is not None:
-                self.reply_to_message(message, reply)
+                await message.channel.send(reply)
         
     def create_reply(self, prompt: str):
         command = f'node {self.CHATBOT_RUNNER_FILE} {self.user.name} {prompt}'

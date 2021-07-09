@@ -1,0 +1,11 @@
+{
+    "BotBot" : {
+        "active" : true,
+        "token" : "ODYwNzc5NjI5OTU3MzQ5Mzc4.YOANgA.TVxuJ4x82i7nqWHO0s8ZFI4RQng"
+    },
+    "CounterBot" : {
+        "active" : true,
+        "token" : "ODYxNzkzNTgxMjAyMTQ1MzEy.YOO90Q.NB3jazNmtpY4qGY0T5b1V2NpwDg",
+        "reply_probability" : 0.5
+    }
+}
