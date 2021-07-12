@@ -1,7 +1,5 @@
 import sys
 
-from discord.errors import InvalidArgument
-
 def run_bot(bot_class, conf_fields={}):
     '''Create a new bot of bot_class and run it'''
     try:
@@ -37,7 +35,8 @@ def get_bot_token_and_conf(conf_fields=[]):
         token = input('Paste the bot token here and press enter: ')
         conf = {}
         for field in conf_fields:
-            field_value = input(f'Enter value of {field}: ')
+            field_type = conf_fields[field]
+            field_value = input(f'Enter value of {field} ({field_type.__name__}): ')
             conf[field] = read_conf_field(conf_fields[field], field_value)
     
     return (token, conf)
@@ -48,15 +47,15 @@ def read_conf_field(field_type, value):
     elif field_type == float:
         return float(value)
     elif field_type == bool:
-        if value == 'true':
+        if value == 'True':
             return True
-        elif value == 'false':
+        elif value == 'False':
             return False
         else:
-            raise InvalidArgument('Boolean value expected for field')
+            raise ValueError('Boolean value expected for field')
     elif field_type == str:
         return value
     else:
-        raise InvalidArgument(
+        raise ValueError(
             f'Unsupported conf var type: {field_type}')
         

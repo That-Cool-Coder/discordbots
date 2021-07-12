@@ -1,4 +1,3 @@
-import asyncio
 from abstract_bot import AbstractBot
 from common import run_bot
 from pyppeteer import launch
@@ -43,12 +42,14 @@ class ImageScraperBot(AbstractBot):
                     await self.page.waitForSelector('.rg_i')
                     thumbnail_elems = await self.page.JJ('.rg_i')
 
-                    # Get an image url
-                    # Sometimes the src attribute of a HTML image won't contain
-                    # a url but instead some base64-encoded data.
-                    # That's bad so we use this loop to ignore base4-encoded ones.
+                    # Get an image url.
+                    # It would appear that the first 21 images in a google search
+                    # don't have a url for src but instead some base64-encoded data.
+                    # That's bad so we start at image #22
+                    # and use this loop to ignore base64-encoded ones.
                     image_url = None
-                    for elem in thumbnail_elems:
+                    for image_idx in range(22, len(thumbnail_elems)):
+                        elem = thumbnail_elems[image_idx]
                         await elem.click()
                         await self.page.waitForSelector('.n3VNCb')
                         function_to_run = '() => document.querySelectorAll(".n3VNCb")[0].src'
@@ -60,7 +61,8 @@ class ImageScraperBot(AbstractBot):
                     if image_url is not None:
                         await message.channel.send(image_url)
                     else:
-                        await message.channel.send('Error: Could not find an image')
+                        error_message = f'Error: Could not find a scrapable image'
+                        await message.channel.send(error_message)
                 finally:
                     self.finding_image = False
 

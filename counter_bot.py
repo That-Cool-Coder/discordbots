@@ -6,7 +6,7 @@ class CounterBot(AbstractBot):
     '''A bot that counts up.
     If the previous post is an integer, add one and post that'''
 
-    def __init__(self, token: str, reply_probability=1):
+    def __init__(self, token: str, reply_probability: float = 1):
         super().__init__(token)
         self.reply_probability = reply_probability
 

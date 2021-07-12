@@ -3,8 +3,6 @@ from json.decoder import JSONDecodeError
 import subprocess
 import sys
 
-from botbot import *
-from counter_bot import *
 from common import *
 
 CONF_FILE_NAME = 'autorun_conf.json'
@@ -12,7 +10,8 @@ CONF_FILE_NAME = 'autorun_conf.json'
 BOT_FILES = {
     'BotBot' : 'botbot.py',
     'CounterBot' : 'counter_bot.py',
-    'ImageScraperBot' : 'image_scraper_bot.py' 
+    'ImageScraperBot' : 'image_scraper_bot.py',
+    'BruhBot' : 'bruh_bot.py'
 }
 
 def show_config_error(message: str):
@@ -39,6 +38,8 @@ if __name__ == '__main__':
         if config[bot_name]['active']:
             if bot_name not in BOT_FILES:
                 show_config_error(f'Bot {bot_name} does not exist')
+            
+            print(f'Starting {bot_name}...')
             config_str = ''
             for field in config[bot_name]:
                 if field == 'token' or field == 'active':
