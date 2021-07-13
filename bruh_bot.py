@@ -31,9 +31,14 @@ class BruhBot(AbstractBot):
         # remove punctuation, spaces, etc
         message = ''.join(c for c in message if c.isalnum())
 
-        # Check that message only contains 'bruh'
+        # Check that message contains nothing except chars in bruh
         invalid_chars_present = True in [ch not in 'bruh' for ch in message]
         if invalid_chars_present:
+            return False
+        
+        # Check that the message contains the required characters for a bruh
+        # only b and r are required - 'br' is considered to be a valid bruh
+        if ('b' not in message) or ('r' not in message):
             return False
 
         # For each char, check that it should go after the previous one
