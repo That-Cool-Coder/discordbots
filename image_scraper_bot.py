@@ -5,9 +5,11 @@ from pyppeteer import launch
 class ImageScraperBot(AbstractBot):
     finding_image = False # Things break when we look for two things at once
 
-    def __init__(self, token: str, debug: bool = False):
+    def __init__(self, token: str, debug: bool = False,
+        requires_trigger: bool = True):
         super().__init__(token)
         self.debug = debug
+        self.requires_trigger = requires_trigger
 
     async def on_ready(self):
         self.TRIGGER = f'hey {self.user.name}'
@@ -20,7 +22,9 @@ class ImageScraperBot(AbstractBot):
     
     async def on_message(self, message):
         if message.author != self.user:
-            if message.content.lower().startswith(self.TRIGGER.lower()):
+            starts_with_trigger = message.content.lower()\
+                .startswith(self.TRIGGER.lower())
+            if starts_with_trigger or not self.requires_trigger:
                 if self.finding_image:
                     await message.channel.send('I am already trying to find an image')
                     return
@@ -31,7 +35,10 @@ class ImageScraperBot(AbstractBot):
                     await message.channel.send('On it!')
 
                     # Remove trigger from content
-                    cleaned_content = message.content[len(self.TRIGGER):]
+                    if starts_with_trigger:
+                        cleaned_content = message.content[len(self.TRIGGER):]
+                    else:
+                        cleaned_content = message.content
 
                     # Goto the google page for the requested image
                     search_terms = cleaned_content.replace(' ', '+')
@@ -67,4 +74,4 @@ class ImageScraperBot(AbstractBot):
                     self.finding_image = False
 
 if __name__ == '__main__':
-    run_bot(ImageScraperBot, {'debug':bool})
+    run_bot(ImageScraperBot, {'debug':bool, 'requires_trigger':bool})
