@@ -1,6 +1,7 @@
 import json
 from json.decoder import JSONDecodeError
 import subprocess
+import threading
 import sys
 
 from common import *
@@ -33,20 +34,24 @@ except:
 finally:
     file.close()
 
+def run_bot_in_subprocess(bot_name: str, bot_config: dict):
+    print(f'Starting {bot_name}...')
+
+    config_str = ''
+    for field in bot_config:
+        if field == 'token' or field == 'active':
+            continue
+        config_str += f'{field}={bot_config[field]} '
+    command = f'{sys.executable} {BOT_FILES[bot_name]} {bot_config["token"]} {config_str}'
+
+    subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
 if __name__ == '__main__':
     for bot_name in config:
         if config[bot_name]['active']:
             if bot_name not in BOT_FILES:
                 show_config_error(f'Bot {bot_name} does not exist')
-            
-            print(f'Starting {bot_name}...')
-            config_str = ''
-            for field in config[bot_name]:
-                if field == 'token' or field == 'active':
-                    continue
-                config_str += f'{field}={config[bot_name][field]} '
-            command = f'{sys.executable} {BOT_FILES[bot_name]} {config[bot_name]["token"]} {config_str}'
-            subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            run_bot_in_subprocess(bot_name, config[bot_name])
 
     while True:
         pass
