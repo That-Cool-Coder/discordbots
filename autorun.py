@@ -20,6 +20,7 @@ def show_config_error(message: str):
     input('Press enter to quit')
     quit()
 
+file = None
 try:
     file = open(CONF_FILE_NAME)
     config = json.loads(file.read())
@@ -32,19 +33,18 @@ except JSONDecodeError:
 except:
     show_config_error('Unknown error')
 finally:
-    file.close()
+    if file is not None:
+        file.close()
 
 def run_bot_in_subprocess(bot_name: str, bot_config: dict):
     print(f'Starting {bot_name}...')
 
-    config_str = ''
+    args = [sys.executable, BOT_FILES[bot_name], bot_config["token"]]
     for field in bot_config:
         if field == 'token' or field == 'active':
             continue
-        config_str += f'{field}={bot_config[field]} '
-    command = f'{sys.executable} {BOT_FILES[bot_name]} {bot_config["token"]} {config_str}'
-
-    subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        args.append(f'{field}={bot_config[field]}')
+    subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 if __name__ == '__main__':
     for bot_name in config:
