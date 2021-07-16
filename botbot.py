@@ -24,6 +24,8 @@ activate            allow the bot to talk
 deactivate          prevent the bot from talking
 require_trigger     only reply when addressed with "{self.RESPONSE_TRIGGER}"
 no_require_trigger  reply to all messages in the channel
+help                bring up this help menu
+current_config      show what the settings are currently set to
 ```'''
 
     async def on_message(self, message):
@@ -71,6 +73,24 @@ no_require_trigger  reply to all messages in the channel
             return 'I will now respond to all messages'
         elif 'help' in sections:
             return self.CONFIG_HELP
+        elif 'current_config' in sections:
+            # First find the longest setting name so we can align the values
+            longest_setting_name = 0
+            for setting_name in self.channel_settings[channel_id]:
+                if len(setting_name) > longest_setting_name:
+                    longest_setting_name = len(setting_name)
+            target_setting_name_length = longest_setting_name + 1
+
+            setting_str = ''
+            for setting_name in self.channel_settings[channel_id]:
+                spaces_required = target_setting_name_length - len(setting_name)
+                padding = ' ' * spaces_required
+                padded_setting_name = f'{setting_name}:{padding}'
+                setting_value = self.channel_settings[channel_id][setting_name]
+                setting_str += f'{padded_setting_name}{setting_value}\n'
+            setting_str = setting_str[:-1] # trim trailing newline
+
+            return f'''```Current configuration:\n{setting_str}```'''
         else:
             return f'Unrecognised command. Type `{self.CONFIG_KEYWORD} help` for more info.'
 
