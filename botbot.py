@@ -9,8 +9,10 @@ class BotBot(AbstractBot):
     '''
 
     CHATBOT_RUNNER_FILE = 'node_chatbot/chatbotRunner.mjs'
-    is_activated = True
-    requires_trigger = True
+
+    def __init__(self, token:str):
+        super().__init__(token, {'activated': True, 'requires_trigger': True})
+
     
     async def on_ready(self):
         self.RESPONSE_TRIGGER = f'hey {self.user.name}'
@@ -30,16 +32,19 @@ no_require_trigger  reply to all messages in the channel
 
             if message.content.startswith(self.CONFIG_KEYWORD):
                 reply = self.process_config_command(
-                    message.content[len(self.CONFIG_KEYWORD):])
+                    message.content[len(self.CONFIG_KEYWORD):],
+                    message.channel.id)
             
-            elif self.is_activated:
+            elif self.channel_settings[message.channel.id]['activated']:
                 response_trigger_present = False
                 clean_content = message.content
                 if message.content.lower().startswith(self.RESPONSE_TRIGGER):
                     response_trigger_present = True
                     clean_content = message.content[len(self.RESPONSE_TRIGGER):]
                 
-                if (not self.requires_trigger) or response_trigger_present:
+                trigger_required = self.channel_settings[message.channel.id]\
+                    ['requires_trigger']
+                if (not trigger_required) or response_trigger_present:
                     reply = self.create_reply(clean_content)
 
             if reply is not None:
@@ -49,20 +54,20 @@ no_require_trigger  reply to all messages in the channel
         command = f'node {self.CHATBOT_RUNNER_FILE} {self.user.name} {prompt}'
         return os.popen(command).read()
     
-    def process_config_command(self, command: str):
-        '''Note that command should have no prefix like $config'''
+    def process_config_command(self, command: str, channel_id: int):
+        '''Note that command should not have prefix like $config'''
         sections = command.split(' ')
         if 'activate' in sections:
-            self.is_activated = True
+            self.channel_settings[channel_id]['activated'] = True
             return 'I am activated'
         elif 'deactivate' in sections:
-            self.is_activated = False
+            self.channel_settings[channel_id]['activated'] = False
             return 'I am deactivated'
         elif 'require_trigger' in sections:
-            self.requires_trigger = True
+            self.channel_settings[channel_id]['requires_trigger'] = True
             return f'I will now only respond to messages starting with "{self.RESPONSE_TRIGGER}"'
         elif 'no_require_trigger' in sections:
-            self.requires_trigger = False
+            self.channel_settings[channel_id]['requires_trigger'] = False
             return 'I will now respond to all messages'
         elif 'help' in sections:
             return self.CONFIG_HELP

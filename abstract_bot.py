@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import discord
 import asyncio
 
@@ -5,8 +7,25 @@ class AbstractBot:
     client = discord.Client()
     user = None
 
-    def __init__(self, token):
+    class ChannelSettings:
+        def __init__(self, default_channel_value):
+            self.DEFAULT_CHANNEL_VALUE = deepcopy(default_channel_value)
+
+            self.__settings = {}
+        
+        def __getitem__(self, channel_id: int):
+            if channel_id not in self.__settings:
+                self.__settings[channel_id] = deepcopy(self.DEFAULT_CHANNEL_VALUE)
+            return self.__settings[channel_id]
+        
+        def __setitem__(self, channel_id: int, value):
+            if channel_id not in self.__settings:
+                self.__settings[channel_id] = deepcopy(self.DEFAULT_CHANNEL_VALUE)
+            self.__settings[channel_id] = value
+
+    def __init__(self, token, default_channel_settings_value={}):
         self.token = token
+        self.channel_settings = self.ChannelSettings(default_channel_settings_value)
 
         @self.client.event
         async def on_ready():
