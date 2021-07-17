@@ -1,8 +1,8 @@
 import random
 from common import run_bot
-from abstract_bot import AbstractBot
+from abstract_bot import Bot
 
-class BruhBot(AbstractBot):
+class BruhBot(Bot):
     '''A bot that says a variation of 'bruh' if
     the previous post was a variation of bruh
     '''

@@ -1,8 +1,8 @@
 import random
 from common import run_bot
-from abstract_bot import AbstractBot
+from abstract_bot import Bot
 
-class CounterBot(AbstractBot):
+class CounterBot(Bot):
     '''A bot that counts up.
     If the previous post is an integer, add one and post that'''
 

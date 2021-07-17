@@ -1,8 +1,8 @@
 import os
 from common import run_bot
-from abstract_bot import AbstractBot
+from abstract_bot import Bot
 
-class BotBot(AbstractBot):
+class BotBot(Bot):
     '''You'll find that a lot of the 'consts' in this class
     are actually defined in the on_ready() method,
     as they rely upon data that is only available after login

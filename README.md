@@ -4,7 +4,7 @@ Some discord bots I made
 
 ## Miscellanious information
 
-All of the bots extend from the class `AbstractBot`, defined in `abstract_bot.py`. It handles things like login and message recieve.
+All of the bots extend from the class `Bot`, defined in `abstract_bot.py`. It handles things like login and message recieve.
 
 To make this program highly configurable, all of the bots can be run with command line arguments, or if they are not provided, you will be prompted for them.
 
@@ -24,4 +24,4 @@ This is a chatbot designed for use in counting channels (where each message = pr
 
 ## Creating a new bot
 
-To create a new bot in this repo, first create a file to contain the bot. Import `AbstractBot` from`abstract_bot` and import `run_bot` from `common`. Then create a class in that file extending from `AbstractBot`. At the bottom of the file, in a `if __name__ == '__main__'` clause, do `run_bot(YourNewBotClass, conf_fields)` (see inside `common.py` for comments explaining conf_fields). In `autorun.py`, add an entry in `BOT_FILES` so the autorunner knows where to find it. Optionally, you can create an entry in your `autorun_conf.json` to make it automatically run.
+To create a new bot in this repo, first create a file to contain the bot. Import `Bot` from`abstract_bot` and import `run_bot` from `common`. Then create a class in that file extending from `Bot`. At the bottom of the file, in a `if __name__ == '__main__'` clause, do `run_bot(YourNewBotClass, conf_fields)` (see inside `common.py` for comments explaining conf_fields). In `autorun.py`, add an entry in `BOT_FILES` so the autorunner knows where to find it. Optionally, you can create an entry in your `autorun_conf.json` to make it automatically run.

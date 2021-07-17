@@ -1,9 +1,10 @@
 from copy import deepcopy
+import abc # abstract class
 
 import discord
 import asyncio
 
-class AbstractBot:
+class Bot(abc.ABC):
     client = discord.Client()
     user = None
 
@@ -43,13 +44,13 @@ class AbstractBot:
         self.user = self.client.user
         await self.on_ready()
     
+    @abc.abstractmethod
     async def on_ready(self):
-        '''Placeholder function to be overwitten'''
-        pass
+        '''Method to be run when the bot is logged in and ready'''
 
     async def  __on_message(self, message):
         await self.on_message(message)
     
+    @abc.abstractmethod
     async def on_message(self, message):
-        '''Placeholder function to be overwritten'''
-        pass
+        '''Method to be run when a message is recieved'''

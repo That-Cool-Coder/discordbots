@@ -1,8 +1,8 @@
-from abstract_bot import AbstractBot
+from abstract_bot import Bot
 from common import run_bot
 from pyppeteer import launch
 
-class ImageScraperBot(AbstractBot):
+class ImageScraperBot(Bot):
     finding_image = False # Things break when we look for two things at once
     ANTI_TRIGGER = '!' # If messages start with this then we ignore them
 
