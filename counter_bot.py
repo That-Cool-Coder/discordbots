@@ -9,6 +9,9 @@ class CounterBot(Bot):
     def __init__(self, token: str, reply_probability: float = 1):
         super().__init__(token)
         self.reply_probability = reply_probability
+    
+    async def on_ready(self, message):
+        pass
 
     async def on_message(self, message):
         # Don't reply to self

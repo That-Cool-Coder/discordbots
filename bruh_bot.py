@@ -12,6 +12,9 @@ class BruhBot(Bot):
         self.reply_probability = reply_probability
         self.max_bruh_length = max_bruh_length
         self.reversal_probability = reversal_probability
+    
+    async def on_ready(self, message):
+        pass
 
     async def on_message(self, message):
         # Don't reply to self
