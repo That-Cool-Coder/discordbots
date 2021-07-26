@@ -10,7 +10,7 @@ class CounterBot(Bot):
         super().__init__(token)
         self.reply_probability = reply_probability
     
-    async def on_ready(self, message):
+    async def on_ready(self):
         pass
 
     async def on_message(self, message):
