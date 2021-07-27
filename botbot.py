@@ -11,7 +11,9 @@ class BotBot(Bot):
     CHATBOT_RUNNER_FILE = 'node_chatbot/chatbotRunner.mjs'
 
     def __init__(self, token:str):
-        super().__init__(token, {'activated': True, 'requires_trigger': True})
+        default_settings = {'activated' : True,'requires_trigger' : True,
+            'use_tts' : False}
+        super().__init__(token, default_settings)
 
     
     async def on_ready(self):
@@ -24,6 +26,8 @@ activate            allow the bot to talk
 deactivate          prevent the bot from talking
 require_trigger     only reply when addressed with "{self.RESPONSE_TRIGGER}"
 no_require_trigger  reply to all messages in the channel
+use_tts             use Discord text-to-speech when sending messages
+no_use_tts          do not use text-to-speech when sending messages
 help                bring up this help menu
 current_config      show what the settings are currently set to
 ```'''
@@ -36,6 +40,7 @@ current_config      show what the settings are currently set to
                 reply = self.process_config_command(
                     message.content[len(self.CONFIG_KEYWORD):],
                     message.channel.id)
+                await message.channel.send(reply)
             
             elif self.channel_settings[message.channel.id]['activated']:
                 response_trigger_present = False
@@ -49,8 +54,8 @@ current_config      show what the settings are currently set to
                 if (not trigger_required) or response_trigger_present:
                     reply = self.create_reply(clean_content)
 
-            if reply is not None:
-                await message.channel.send(reply)
+                use_tts = self.channel_settings[message.channel.id]['use_tts']
+                await message.channel.send(reply, tts=use_tts)
         
     def create_reply(self, prompt: str):
         command = f'node {self.CHATBOT_RUNNER_FILE} {self.user.name} {prompt}'
@@ -59,34 +64,41 @@ current_config      show what the settings are currently set to
     def process_config_command(self, command: str, channel_id: int):
         '''Note that command should not have prefix like $config'''
         sections = command.split(' ')
+        this_channel_settings = self.channel_settings[channel_id]
         if 'activate' in sections:
-            self.channel_settings[channel_id]['activated'] = True
+            this_channel_settings['activated'] = True
             return 'I am activated'
         elif 'deactivate' in sections:
-            self.channel_settings[channel_id]['activated'] = False
+            this_channel_settings['activated'] = False
             return 'I am deactivated'
         elif 'require_trigger' in sections:
-            self.channel_settings[channel_id]['requires_trigger'] = True
+            this_channel_settings['requires_trigger'] = True
             return f'I will now only respond to messages starting with "{self.RESPONSE_TRIGGER}"'
         elif 'no_require_trigger' in sections:
-            self.channel_settings[channel_id]['requires_trigger'] = False
+            this_channel_settings['requires_trigger'] = False
             return 'I will now respond to all messages'
+        elif 'use_tts' in sections:
+            this_channel_settings['use_tts'] = True
+            return 'I will now use text-to-speech when replying'
+        elif 'no_use_tts' in sections:
+            this_channel_settings['use_tts'] = False
+            return 'I will now not use text-to-speech when replying'
         elif 'help' in sections:
             return self.CONFIG_HELP
         elif 'current_config' in sections:
             # First find the longest setting name so we can align the values
             longest_setting_name = 0
-            for setting_name in self.channel_settings[channel_id]:
+            for setting_name in this_channel_settings:
                 if len(setting_name) > longest_setting_name:
                     longest_setting_name = len(setting_name)
             target_setting_name_length = longest_setting_name + 1
 
             setting_str = ''
-            for setting_name in self.channel_settings[channel_id]:
+            for setting_name in this_channel_settings:
                 spaces_required = target_setting_name_length - len(setting_name)
                 padding = ' ' * spaces_required
                 padded_setting_name = f'{setting_name}:{padding}'
-                setting_value = self.channel_settings[channel_id][setting_name]
+                setting_value = this_channel_settings[setting_name]
                 setting_str += f'{padded_setting_name}{setting_value}\n'
             setting_str = setting_str[:-1] # trim trailing newline
 
