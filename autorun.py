@@ -12,7 +12,8 @@ BOT_FILES = {
     'BotBot' : 'botbot.py',
     'CounterBot' : 'counter_bot.py',
     'ImageScraperBot' : 'image_scraper_bot.py',
-    'BruhBot' : 'bruh_bot.py'
+    'BruhBot' : 'bruh_bot.py',
+    'SpamBot' : 'spam_bot.py'
 }
 
 def show_config_error(message: str):
