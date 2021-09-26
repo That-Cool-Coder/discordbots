@@ -21,7 +21,7 @@ class BruhBot(Bot):
         if message.author != self.user:
             # Have a certain chance of replying
             if random.uniform(0, 1) < self.reply_probability:
-                if self.is_bruh(message.content):
+                if self.is_bruh(message.content) or self.is_bruh(message.content[::-1]):
                     await message.channel.send(self.generate_bruh())
     
     def is_bruh(self, message: str) -> bool:
