@@ -6,6 +6,7 @@ def run_bot(bot_class, conf_fields={}):
         token, conf = get_bot_token_and_conf(conf_fields)
         bot_class(token, **conf).run()
     except:
+        raise
         print('Error running bot - token or configuration is probably invalid')
 
 def get_bot_token_and_conf(conf_fields=[]):

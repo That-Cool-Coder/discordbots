@@ -1,6 +1,7 @@
 from abstract_bot import Bot
 from common import run_bot
 from pyppeteer import launch
+from better_profanity import profanity
 
 class ImageScraperBot(Bot):
     finding_image = False # Things break when we look for two things at once
@@ -11,6 +12,7 @@ class ImageScraperBot(Bot):
         super().__init__(token)
         self.debug = debug
         self.requires_trigger = requires_trigger
+        profanity.load_censor_words()
 
     async def on_ready(self):
         self.TRIGGER = f'hey {self.user.name}'
@@ -43,6 +45,12 @@ class ImageScraperBot(Bot):
                         cleaned_content = message.content[len(self.TRIGGER):]
                     else:
                         cleaned_content = message.content
+                    
+                    if profanity.contains_profanity(cleaned_content):
+                        await message.channel.send('No swearing!')
+                        return
+                    
+                    cleaned_content = profanity.censor(cleaned_content)
 
                     # Goto the google page for the requested image
                     search_terms = cleaned_content.replace(' ', '+')
