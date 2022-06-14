@@ -1,4 +1,5 @@
 import json
+import time
 from json.decoder import JSONDecodeError
 import subprocess
 import threading
@@ -13,7 +14,8 @@ BOT_FILES = {
     'CounterBot' : 'counter_bot.py',
     'ImageScraperBot' : 'image_scraper_bot.py',
     'BruhBot' : 'bruh_bot.py',
-    'SpamBot' : 'spam_bot.py'
+    'SpamBot' : 'spam_bot.py',
+    'PauseBot' : 'pause_bot.py'
 }
 
 def show_config_error(message: str):
@@ -55,4 +57,4 @@ if __name__ == '__main__':
             run_bot_in_subprocess(bot_name, config[bot_name])
 
     while True:
-        pass
+        time.sleep(10)
