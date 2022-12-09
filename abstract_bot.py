@@ -5,7 +5,6 @@ import discord
 import asyncio
 
 class Bot(abc.ABC):
-    client = discord.Client()
     user = None
 
     class ChannelSettings:
@@ -27,6 +26,10 @@ class Bot(abc.ABC):
     def __init__(self, token, default_channel_settings_value={}):
         self.token = token
         self.channel_settings = self.ChannelSettings(default_channel_settings_value)
+        
+        intents = discord.Intents.default()
+        intents.message_content = True
+        self.client = discord.Client(intents=intents)
 
         @self.client.event
         async def on_ready():

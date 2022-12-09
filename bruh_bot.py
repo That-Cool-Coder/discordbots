@@ -13,7 +13,7 @@ class BruhBot(Bot):
         self.max_bruh_length = max_bruh_length
         self.reversal_probability = reversal_probability
     
-    async def on_ready(self, message):
+    async def on_ready(self):
         pass
 
     async def on_message(self, message):
