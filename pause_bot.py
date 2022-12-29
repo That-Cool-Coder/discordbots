@@ -4,16 +4,16 @@ import time
 
 from better_profanity import profanity
 profanity.load_censor_words()
-profanity.add_censor_words(['play', 'dad'])
 
 from common import run_bot
 from abstract_bot import Bot
 
 class PauseBot(Bot):
     # Stupid joke bot that says "Pause" if it detects anyone saying sexual things but only those involving men
+    # (Friends seem to think it is funny)
     ANTI_CENSOR_WORDS = ['woman', 'female', 'girl', 'lady']
-    EXTRA_CENSOR_WORDS_A = ['man', 'men', 'guy', 'guys']
-    EXTRA_CENSOR_WORDS_B = ['like', 'love', 'adore']
+    EXTRA_CENSOR_NOUNS = ['man', 'men', 'guy', 'guys', 'dad']
+    EXTRA_CENSOR_VERBS = ['like', 'love', 'adore', 'play', 'tickle', 'luv', 'kiss', 'smooch', 'hug']
 
     def __init__(self, token: str):
         super().__init__(token)
@@ -29,7 +29,7 @@ class PauseBot(Bot):
                     triggered = True
                 else:
                     words = message.content.lower().translate(str.maketrans("","", string.punctuation)).split(' ')
-                    if any([word in self.EXTRA_CENSOR_WORDS_A for word in words]) and any([word in self.EXTRA_CENSOR_WORDS_B for word in words]):
+                    if any([word in self.EXTRA_CENSOR_NOUNS for word in words]) and any([word in self.EXTRA_CENSOR_VERBS for word in words]):
                         triggered = True
                 if triggered:
                     await message.channel.send(':pause_button:   Pause bro')
