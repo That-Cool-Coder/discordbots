@@ -1,3 +1,2 @@
 pyppeteer
 discord
-better_profanity
