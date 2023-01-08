@@ -2,6 +2,9 @@ import os
 import string
 import time
 
+from better_profanity import profanity
+profanity.load_censor_words()
+
 from common import run_bot
 from abstract_bot import Bot
 
@@ -24,13 +27,11 @@ class PauseBot(Bot):
 
         if any([word in message.content for word in self.ANTI_TRIGGER_WORDS]):
             return
-        
-        triggered = False
+
         words = message.content.lower().translate(str.maketrans("","", string.punctuation)).split(' ')
-        if any([word in self.TRIGGER_NOUNS for word in words]) and any([word in self.TRIGGER_VERBS for word in words]):
-            triggered = True
-        if triggered:
-            await message.channel.send(':pause_button:   Pause bro')
+        if any([word in self.TRIGGER_NOUNS for word in words]):
+            if profanity.contains_profanity(words) or any([word in self.TRIGGER_VERBS for word in words]):
+                await message.channel.send(':pause_button:   Pause bro')
 
 if __name__ == '__main__':
     run_bot(PauseBot)
