@@ -11,11 +11,11 @@ class CounterBot(Bot):
     If the previous post is an integer, add one and post that.
     Also has spam feature'''
 
-    def __init__(self, token: str, reply_probability: float = 1,
+    def __init__(self, token: str, reply_probability: float = 1, only_check_first_word: bool = True,
     global_spam_enabled: bool = False, whitelist_active: bool = False, spam_interval: float = 1, config_password: str = ''):
         super().__init__(token)
         self.reply_probability = reply_probability
-
+        self.only_check_first_word = only_check_first_word # makes it count if you say "1094 test" for instance
         
         self.spam_interval = spam_interval
         self.global_spam_enabled = global_spam_enabled
@@ -42,9 +42,15 @@ class CounterBot(Bot):
         if message.author != self.user:
             # Have a certain chance of replying
             if random.uniform(0, 1) < self.reply_probability:
+                if self.only_check_first_word:
+                    items = message.content.strip().split(' ')
+                    text = items[0] if items else '-'
+                else:
+                    text = message.content
+
                 # Only proceed if message is integer (ie only digits)
-                if message.content.isdigit():
-                    await message.channel.send(int(message.content) + 1)
+                if text.isdigit():
+                    await message.channel.send(int(text) + 1)
                 
             if message.content.lower().startswith(self.response_trigger) and self.global_spam_enabled:
                 cleaned_message = message.content[len(self.response_trigger):].strip()
@@ -158,4 +164,4 @@ class CounterBot(Bot):
             await self.spam(text, message_channel)
 
 if __name__ == '__main__':
-    run_bot(CounterBot, {'reply_probability':float, 'global_spam_enabled': bool, 'spam_interval': float, 'whitelist_active': bool, 'spam_interval': float, 'config_password':str})
+    run_bot(CounterBot, {'reply_probability':float, 'only_check_first_word': bool, 'global_spam_enabled': bool, 'spam_interval': float, 'whitelist_active': bool, 'spam_interval': float, 'config_password':str})
