@@ -13,7 +13,7 @@ class PauseBot(Bot):
     # (Friends seem to think it is funny)
     ANTI_TRIGGER_WORDS = ['woman', 'female', 'girl', 'lady']
     TRIGGER_NOUNS = ['man', 'men', 'dad', 'boy', 'boys']
-    TRIGGER_VERBS = ['like', 'love', 'adore', 'play', 'tickle', 'luv', 'kiss', 'smooch', 'hug']
+    TRIGGER_VERBS = ['like', 'love', 'adore', 'play', 'tickle', 'luv', 'kiss', 'smooch', 'hug', 'heart']
 
     def __init__(self, token: str):
         super().__init__(token)
