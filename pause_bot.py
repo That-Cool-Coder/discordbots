@@ -30,7 +30,7 @@ class PauseBot(Bot):
 
         words = message.content.lower().translate(str.maketrans("","", string.punctuation)).split(' ')
         if any([word in self.TRIGGER_NOUNS for word in words]):
-            if profanity.contains_profanity(words) or any([word in self.TRIGGER_VERBS for word in words]):
+            if profanity.contains_profanity(message.content) or any([word in self.TRIGGER_VERBS for word in words]):
                 await message.channel.send(':pause_button:   Pause bro')
 
 if __name__ == '__main__':
