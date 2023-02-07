@@ -12,7 +12,7 @@ class PauseBot(Bot):
     # Stupid joke bot that says "Pause" if it detects anyone saying sexual things but only those involving men
     # (Friends seem to think it is funny)
     ANTI_TRIGGER_WORDS = ['woman', 'female', 'girl', 'lady']
-    TRIGGER_NOUNS = ['man', 'men', 'dad']
+    TRIGGER_NOUNS = ['man', 'men', 'dad', 'boy', 'boys']
     TRIGGER_VERBS = ['like', 'love', 'adore', 'play', 'tickle', 'luv', 'kiss', 'smooch', 'hug']
 
     def __init__(self, token: str):
