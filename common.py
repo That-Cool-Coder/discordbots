@@ -1,13 +1,19 @@
 import sys
+import atexit
 
 def run_bot(bot_class, conf_fields={}):
     '''Create a new bot of bot_class and run it'''
     try:
+        instance = None
         token, conf = get_bot_token_and_conf(conf_fields)
-        bot_class(token, **conf).run()
+        instance = bot_class(token, **conf)
+        atexit.register(instance.cleanup)
+        instance.run()
     except:
-        raise
         print('Error running bot - token or configuration is probably invalid')
+        if instance is not None:
+            instance.cleanup()
+        raise
 
 def get_bot_token_and_conf(conf_fields=[]):
     '''Try to get configuration for the bot from argv.

@@ -1,3 +1,4 @@
 pyppeteer
 discord
 better-profanity
+jsonpickle

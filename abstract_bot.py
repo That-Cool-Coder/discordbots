@@ -23,11 +23,11 @@ class Bot(abc.ABC):
                 self.__settings[channel_id] = deepcopy(self.DEFAULT_CHANNEL_VALUE)
             self.__settings[channel_id] = value
 
-    def __init__(self, token, default_channel_settings_value={}):
+    def __init__(self, token, default_channel_settings_value={}, intents: discord.Intents = None):
         self.token = token
         self.channel_settings = self.ChannelSettings(default_channel_settings_value)
         
-        intents = discord.Intents.default()
+        intents = intents or discord.Intents.default()
         intents.message_content = True
         self.client = discord.Client(intents=intents)
 
@@ -47,7 +47,6 @@ class Bot(abc.ABC):
         self.user = self.client.user
         await self.on_ready()
     
-    @abc.abstractmethod
     async def on_ready(self):
         '''Method to be run when the bot is logged in and ready'''
 
@@ -57,3 +56,7 @@ class Bot(abc.ABC):
     @abc.abstractmethod
     async def on_message(self, message):
         '''Method to be run when a message is recieved'''
+
+    def cleanup(self):
+        '''Method called when the bot is being turned off'''
+        pass

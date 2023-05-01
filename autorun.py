@@ -15,7 +15,8 @@ BOT_FILES = {
     'ImageScraperBot' : 'image_scraper_bot.py',
     'BruhBot' : 'bruh_bot.py',
     'SpamBot' : 'spam_bot.py',
-    'PauseBot' : 'pause_bot.py'
+    'PauseBot' : 'pause_bot.py',
+    'DumbXp' : 'dumbxp.py'
 }
 
 def show_config_error(message: str):
