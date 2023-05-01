@@ -74,7 +74,7 @@ def calculate_str_delta(a: str, b: str) -> int:
     return [i != j for i, j in zip(a, b)].count(True)
 
 def get_user_tag(user: discord.User):
-    return user.name + '#' + user.discriminator
+    return user.id
 
 class XpManager:
     def __init__(self, leaderboard_file_name: str, xp_settings: XpSettings):
@@ -175,7 +175,7 @@ class DumbXp(Bot):
         discord_user = message.mentions[0]
         user = self.xp_manager.get_user(get_user_tag(discord_user))
         level_size = calculate_level_size(user.level, self.xp_manager.xp_settings)
-        await message.channel.send(f'Ranking info for {message.author.mention}: {round(user.xp)} xp / {round(level_size)} [level {user.level}]')
+        await message.channel.send(f'Ranking info for {message.mentions[0].mention}: {round(user.xp)} xp / {round(level_size)} [level {user.level}]')
     
     async def send_leaderboard_message(self, message: discord.Message):
         users = [(k, v) for k, v in self.xp_manager.leaderboard.items()]
@@ -186,7 +186,7 @@ class DumbXp(Bot):
         leaderboard_lines = []
         for idx, user_info in enumerate(users):
             user_name, user_xp = user_info
-            leaderboard_lines.append(f'{idx + 1}) {user_name} {user_xp.xp} [level {user_xp.level}]')
+            leaderboard_lines.append(f'{idx + 1}) <@{user_name}> {user_xp.xp} [level {user_xp.level}]')
 
         await message.channel.send(f'Leaderboard:\n' + '\n'.join(leaderboard_lines))
     
