@@ -37,16 +37,20 @@ class XpSettings:
 @dataclass
 class UserXp:
     xp: float
-    level: int
     image_send_timestamps: list[float]
 
     def clear_old_image_timestamps(self, current_time: float, settings: XpSettings):
         self.image_send_timestamps = [t for t in self.image_send_timestamps if
             t + settings.image_multiplier_duration >= current_time]
     
-    def update_level(self, settings: XpSettings):
-        while self.xp > calculate_level_size(self.level + 1, settings):
-            self.level += 1
+    def calc_level(self, settings: XpSettings):
+        target = self.xp / settings.base_level_size
+        multiplier = 1
+        level = 0
+        while multiplier < target:
+            level += 1
+            multiplier += settings.level_size_exponent * (level)
+        return level
 
 def apply_exponent_with_break_even_point(value: float, exponent: float, break_even_point: float) -> float:
     return value ** exponent * (break_even_point / break_even_point ** exponent)
@@ -70,7 +74,7 @@ def calculate_xp_gain(message: str, attachment_bytes: int, xp: UserXp, current_t
     
     value += attachment_bytes * s.attachment_score_per_byte
 
-    value *= s.xp_gain_exponent ** xp.level
+    value *= s.xp_gain_exponent ** xp.calc_level(s)
     value *= s.image_multiplier ** len(xp.image_send_timestamps)
 
     return value
@@ -120,7 +124,7 @@ class XpManager:
         try:
             return self.leaderboard[username]
         except KeyError:
-            user = UserXp(0, 0, [])
+            user = UserXp(0, [])
             self.leaderboard[username] = user
             return user
     
@@ -129,7 +133,6 @@ class XpManager:
         user.clear_old_image_timestamps(datetime.utcnow().timestamp(), self.xp_settings)
         user.image_send_timestamps += [datetime.utcnow().timestamp()] * image_count
         user.xp += calculate_xp_gain(message, attachment_bytes, user, datetime.utcnow().timestamp(), self.xp_settings)
-        user.update_level(self.xp_settings)
     
     def cleanup(self):
         if os.path.exists(self.lock_file_name):
@@ -175,9 +178,9 @@ class DumbXp(Bot):
         image_count = [t.content_type.startswith('image/') for t in message.attachments].count(True)
 
         user = self.xp_manager.get_user(get_user_tag(message.author))
-        old_level = user.level
+        old_level = user.calc_level(self.xp_manager.xp_settings)
         self.xp_manager.apply_xp_from_message(message.content, attachment_bytes, image_count, get_user_tag(message.author))
-        if user.level != old_level:
+        if user.calc_level(self.xp_manager.xp_settings) != old_level:
             await self.send_level_up_message(message)
 
         self.message_counter += 1
@@ -192,8 +195,9 @@ class DumbXp(Bot):
 
         discord_user = message.mentions[0]
         user = self.xp_manager.get_user(get_user_tag(discord_user))
-        level_size = calculate_level_size(user.level, self.xp_manager.xp_settings)
-        await message.channel.send(f'Ranking info for {message.mentions[0].mention}: {round(user.xp)} xp / {round(level_size)} [level {user.level}]')
+        level = user.calc_level(self.xp_manager.xp_settings)
+        level_size = calculate_level_size(level + 1, self.xp_manager.xp_settings)
+        await message.channel.send(f'Ranking info for {message.mentions[0].mention}: {round(user.xp)} xp / {round(level_size)} [level {level}]')
     
     async def send_leaderboard_message(self, message: discord.Message):
         users = [(k, v) for k, v in self.xp_manager.leaderboard.items()]
@@ -204,13 +208,13 @@ class DumbXp(Bot):
         leaderboard_lines = []
         for idx, user_info in enumerate(users):
             user_name, user_xp = user_info
-            leaderboard_lines.append(f'{idx + 1}) <@{user_name}> {round(user_xp.xp)} [level {user_xp.level}]')
+            leaderboard_lines.append(f'{idx + 1}) <@{user_name}> {round(user_xp.xp)} [level {user_xp.calc_level(self.xp_manager.xp_settings)}]')
 
         await message.channel.send(f'Leaderboard:\n' + '\n'.join(leaderboard_lines))
     
     async def send_level_up_message(self, message: discord.Message):
         user = self.xp_manager.get_user(get_user_tag(message.author))
-        await message.channel.send(f'Congrats to {message.author.mention} for reaching level {user.level}!')
+        await message.channel.send(f'Congrats to {message.author.mention} for reaching level {user.calc_level(self.xp_manager.xp_settings)}!')
     
     def cleanup(self):
         self.xp_manager.cleanup()
