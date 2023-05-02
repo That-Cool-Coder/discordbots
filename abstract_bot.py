@@ -1,5 +1,6 @@
 from copy import deepcopy
 import abc # abstract class
+import traceback
 
 import discord
 import asyncio
@@ -48,13 +49,19 @@ class Bot(abc.ABC):
     async def __on_ready(self):
         print(f'Logged in as {self.client.user}')
         self.user = self.client.user
-        await self.on_ready()
+        try:
+            await self.on_ready()
+        except:
+            traceback.print_exc()
     
     async def on_ready(self):
         '''Method to be run when the bot is logged in and ready'''
 
     async def  __on_message(self, message):
-        await self.on_message(message)
+        try:
+            await self.on_message(message)
+        except:
+            traceback.print_exc()
     
     @abc.abstractmethod
     async def on_message(self, message):

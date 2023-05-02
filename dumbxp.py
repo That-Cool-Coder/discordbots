@@ -51,26 +51,27 @@ class UserXp:
 def apply_exponent_with_break_even_point(value: float, exponent: float, break_even_point: float) -> float:
     return value ** exponent * (break_even_point / break_even_point ** exponent)
 
-def calculate_xp_gain(message: str, attachment_bytes: int, xp: UserXp, current_time: float, s: XpSettings) -> float:
-    def apply_char_based_multiplier(existing_value: float, multiplier: float, num_matching_chars: int) -> float:
-        return existing_value + num_matching_chars * (multiplier - 1)
+def apply_char_based_multiplier(existing_value: float, multiplier: float, num_matching_chars: int, message_length: int) -> float:
+    return existing_value + existing_value * (num_matching_chars / message_length * (multiplier - 1))
 
-    value = len(message) * s.base_char_score
+def calculate_xp_gain(message: str, attachment_bytes: int, xp: UserXp, current_time: float, s: XpSettings) -> float:
+
+    length = len(message)
+    value = length * s.base_char_score
     value = apply_exponent_with_break_even_point(value, s.message_length_exponent, s.message_length_break_even_point)
 
     profanity_count = calculate_str_delta(message, profanity.censor(message))
     profanity_count = apply_exponent_with_break_even_point(profanity_count, s.multiplier_char_exponent, s.multiplier_char_break_even_point)
-    value = apply_char_based_multiplier(value, s.profanity_multiplier * s.base_char_score, profanity_count)
+    value = apply_char_based_multiplier(value, s.profanity_multiplier * s.base_char_score, profanity_count, length)
 
     capital_count = [c.isupper() for c in message].count(True)
     capital_count = apply_exponent_with_break_even_point(capital_count, s.multiplier_char_exponent, s.multiplier_char_break_even_point)
-    value = apply_char_based_multiplier(value, s.capital_multiplier * s.base_char_score, capital_count)
+    value = apply_char_based_multiplier(value, s.capital_multiplier * s.base_char_score, capital_count, length)
     
     value += attachment_bytes * s.attachment_score_per_byte
 
     value *= s.xp_gain_exponent ** xp.level
     value *= s.image_multiplier ** len(xp.image_send_timestamps)
-
 
     return value
 
