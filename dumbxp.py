@@ -6,7 +6,6 @@ import functools
 
 from better_profanity import profanity
 profanity.load_censor_words()
-profanity.add_censor_words(['flag'])
 import discord
 
 from common import run_bot
@@ -22,14 +21,18 @@ class DbLocked(Exception):
 @dataclass
 class XpSettings:
     base_char_score = 1
+    message_length_exponent = 1/3
+    message_length_break_even_point = 100 # The point at which base_char_score * len(message) == (base_char_score * len(message)) ^ message_length_exponent
     capital_multiplier = 2
-    profanity_multiplier = 5
+    profanity_multiplier = 2
+    multiplier_char_exponent = 1/2
+    multiplier_char_break_even_point = 4
     attachment_score_per_byte = 100 / 1_000_000
     image_multiplier = 2
     image_multiplier_duration = 60
-    base_level_size = 1000
-    level_size_exponent = 1.2
-    xp_gain_exponent = 2 ** (1/10)
+    base_level_size = 2000
+    level_size_exponent = 1.6332
+    xp_gain_exponent = 2 ** (1/5)
 
 @dataclass
 class UserXp:
@@ -45,16 +48,23 @@ class UserXp:
         while self.xp > calculate_level_size(self.level + 1, settings):
             self.level += 1
 
-def calculate_xp_gain(message: str, attachment_bytes: int, xp: UserXp, current_time: float, s: XpSettings) -> float:
+def apply_exponent_with_break_even_point(value: float, exponent: float, break_even_point: float) -> float:
+    return value ** exponent * (break_even_point / break_even_point ** exponent)
 
+def calculate_xp_gain(message: str, attachment_bytes: int, xp: UserXp, current_time: float, s: XpSettings) -> float:
     def apply_char_based_multiplier(existing_value: float, multiplier: float, num_matching_chars: int) -> float:
         return existing_value + num_matching_chars * (multiplier - 1)
 
     value = len(message) * s.base_char_score
-    value = apply_char_based_multiplier(value, s.profanity_multiplier * s.base_char_score,
-        calculate_str_delta(message, profanity.censor(message)))
-    value = apply_char_based_multiplier(value, s.capital_multiplier * s.base_char_score,
-        [c.isupper() for c in message].count(True))
+    value = apply_exponent_with_break_even_point(value, s.message_length_exponent, s.message_length_break_even_point)
+
+    profanity_count = calculate_str_delta(message, profanity.censor(message))
+    profanity_count = apply_exponent_with_break_even_point(profanity_count, s.multiplier_char_exponent, s.multiplier_char_break_even_point)
+    value = apply_char_based_multiplier(value, s.profanity_multiplier * s.base_char_score, profanity_count)
+
+    capital_count = [c.isupper() for c in message].count(True)
+    capital_count = apply_exponent_with_break_even_point(capital_count, s.multiplier_char_exponent, s.multiplier_char_break_even_point)
+    value = apply_char_based_multiplier(value, s.capital_multiplier * s.base_char_score, capital_count)
     
     value += attachment_bytes * s.attachment_score_per_byte
 
@@ -74,7 +84,7 @@ def calculate_str_delta(a: str, b: str) -> int:
     return [i != j for i, j in zip(a, b)].count(True)
 
 def get_user_tag(user: discord.User):
-    return user.id
+    return str(user.id)
 
 class XpManager:
     def __init__(self, leaderboard_file_name: str, xp_settings: XpSettings):
@@ -182,11 +192,11 @@ class DumbXp(Bot):
         users.sort(reverse=True, key=lambda u: u[1].xp)
         if len(users) > self.LEADERBOARD_AMOUNT:
             users = users[:self.LEADERBOARD_AMOUNT]
-        
+
         leaderboard_lines = []
         for idx, user_info in enumerate(users):
             user_name, user_xp = user_info
-            leaderboard_lines.append(f'{idx + 1}) <@{user_name}> {user_xp.xp} [level {user_xp.level}]')
+            leaderboard_lines.append(f'{idx + 1}) <@{user_name}> {round(user_xp.xp)} [level {user_xp.level}]')
 
         await message.channel.send(f'Leaderboard:\n' + '\n'.join(leaderboard_lines))
     

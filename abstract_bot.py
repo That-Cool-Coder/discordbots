@@ -42,6 +42,9 @@ class Bot(abc.ABC):
     def run(self):
         self.client.run(self.token)
     
+    async def start(self):
+        await self.client.start(self.token)
+
     async def __on_ready(self):
         print(f'Logged in as {self.client.user}')
         self.user = self.client.user

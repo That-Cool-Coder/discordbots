@@ -4,19 +4,28 @@ from json.decoder import JSONDecodeError
 import subprocess
 import threading
 import sys
+import copy
+import asyncio
+import atexit
 
 from common import *
 
+import botbot
+import bruh_bot
+import counter_bot
+import dumbxp
+import image_scraper_bot
+import pause_bot
+
 CONF_FILE_NAME = 'autorun_conf.json'
 
-BOT_FILES = {
-    'BotBot' : 'botbot.py',
-    'CounterBot' : 'counter_bot.py',
-    'ImageScraperBot' : 'image_scraper_bot.py',
-    'BruhBot' : 'bruh_bot.py',
-    'SpamBot' : 'spam_bot.py',
-    'PauseBot' : 'pause_bot.py',
-    'DumbXp' : 'dumbxp.py'
+BOT_CLASSES = {
+    'BotBot' : botbot.BotBot,
+    'BruhBot' : bruh_bot.BruhBot,
+    'CounterBot' : counter_bot.CounterBot,
+    'DumbXp' : dumbxp.DumbXp, 
+    'ImageScraperBot' : image_scraper_bot.ImageScraperBot,
+    'PauseBot' : pause_bot.PauseBot,
 }
 
 def show_config_error(message: str):
@@ -27,7 +36,7 @@ def show_config_error(message: str):
 file = None
 try:
     file = open(CONF_FILE_NAME)
-    config = json.loads(file.read())
+    config = json.load(file)
 except FileNotFoundError:
     show_config_error(f'Cannot find config file ({CONF_FILE_NAME})')
 except PermissionError:
@@ -40,22 +49,27 @@ finally:
     if file is not None:
         file.close()
 
-def run_bot_in_subprocess(bot_name: str, bot_config: dict):
-    print(f'Starting {bot_name}...')
-
-    args = [sys.executable, BOT_FILES[bot_name], bot_config["token"]]
-    for field in bot_config:
-        if field == 'token' or field == 'active':
-            continue
-        args.append(f'{field}={bot_config[field]}')
-    subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
 if __name__ == '__main__':
+    event_loop = asyncio.new_event_loop()
     for bot_name in config:
         if config[bot_name]['active']:
-            if bot_name not in BOT_FILES:
+            if bot_name not in BOT_CLASSES:
                 show_config_error(f'Bot {bot_name} does not exist')
-            run_bot_in_subprocess(bot_name, config[bot_name])
+                continue
 
-    while True:
-        time.sleep(10)
+            print(f'Starting {bot_name}')
+            bot_config = copy.deepcopy(config[bot_name])
+            del bot_config['active']
+
+            instance = None
+            try:
+                instance = BOT_CLASSES[bot_name](**bot_config)
+                event_loop.create_task(instance.start())
+                atexit.register(instance.cleanup)
+            except Exception as e:
+                print('Error running bot - token or configuration is probably invalid')
+                if instance is not None:
+                    instance.cleanup()
+                print(e)
+                
+    event_loop.run_forever()
