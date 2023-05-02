@@ -140,12 +140,14 @@ class DumbXp(Bot):
     RANK_PREFIX = '/rank'
     LEADERBOARD_PREFIX = '/leaderboard'
     LEADERBOARD_AMOUNT = 10
+    SAVE_INTERVAL = 10
 
     def __init__(self, token: str, xp_settings: XpSettings = None):
         super().__init__(token)
         xp_settings = xp_settings or XpSettings()
 
         self.enabled_servers = []
+        self.message_counter = 0
 
         self.xp_manager = XpManager('leaderboard.json', xp_settings)
     
@@ -176,6 +178,11 @@ class DumbXp(Bot):
         self.xp_manager.apply_xp_from_message(message.content, attachment_bytes, image_count, get_user_tag(message.author))
         if user.level != old_level:
             await self.send_level_up_message(message)
+
+        self.message_counter += 1
+        if self.message_counter % self.SAVE_INTERVAL == 0:
+            self.message_counter = 0
+            self.xp_manager.save_leaderboard()
     
     async def send_rank_message(self, message: discord.Message):
         if len(message.mentions) == 0:
