@@ -11,6 +11,9 @@ import discord
 from common import run_bot
 from abstract_bot import Bot
 
+# A note on levels:
+# A user's level is the highest level
+
 class DbLocked(Exception):
     def __init__(self, file_name):
         message = f'XP database {file_name} is locked. ' + \
@@ -30,7 +33,7 @@ class XpSettings:
     attachment_score_per_byte = 100 / 1_000_000
     image_multiplier = 2
     image_multiplier_duration = 60
-    base_level_size = 2000
+    base_level_size = 1000
     level_size_exponent = 1.6332
     xp_gain_exponent = 2 ** (1/5)
 
