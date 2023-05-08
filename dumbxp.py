@@ -61,6 +61,8 @@ def apply_exponent_with_break_even_point(value: float, exponent: float, break_ev
     return value ** exponent * (break_even_point / break_even_point ** exponent)
 
 def apply_char_based_multiplier(existing_value: float, multiplier: float, num_matching_chars: int, message_length: int) -> float:
+    if message_length == 0:
+        return existing_value
     return existing_value + existing_value * (num_matching_chars / message_length * (multiplier - 1))
 
 def calculate_xp_gain(message: str, attachment_bytes: int, xp: UserXp, current_time: float, s: XpSettings) -> float:
