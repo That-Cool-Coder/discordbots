@@ -27,15 +27,15 @@ class XpSettings:
     message_length_exponent = 1/3
     message_length_break_even_point = 100 # The point at which base_char_score * len(message) == (base_char_score * len(message)) ^ message_length_exponent
     capital_multiplier = 2
-    profanity_multiplier = 2
+    profanity_multiplier = 3
     multiplier_char_exponent = 1/2
     multiplier_char_break_even_point = 4
     attachment_score_per_byte = 100 / 1_000_000
     image_multiplier = 2
     image_multiplier_duration = 60
     base_level_size = 1000
-    level_size_exponent = 1.6332
-    xp_gain_exponent = 2 ** (1/5)
+    level_size_exponent = 1.232
+    xp_gain_exponent = 1.184
 
 @dataclass
 class UserXp:
@@ -50,9 +50,11 @@ class UserXp:
         target = self.xp / settings.base_level_size
         multiplier = 1
         level = 0
+        last_delta = 1
         while multiplier < target:
             level += 1
-            multiplier += settings.level_size_exponent * (level)
+            multiplier += last_delta
+            last_delta *= settings.level_size_exponent
         return level
 
 def apply_exponent_with_break_even_point(value: float, exponent: float, break_even_point: float) -> float:
@@ -84,8 +86,10 @@ def calculate_xp_gain(message: str, attachment_bytes: int, xp: UserXp, current_t
 
 def calculate_level_size(level: int, settings: XpSettings) -> float:
     multiplier = 1
+    last_delta = 1
     for i in range(level):
-        multiplier += settings.level_size_exponent * i
+        multiplier += last_delta
+        last_delta *= settings.level_size_exponent
     return settings.base_level_size * multiplier
 
 def calculate_str_delta(a: str, b: str) -> int:
@@ -211,7 +215,7 @@ class DumbXp(Bot):
         leaderboard_lines = []
         for idx, user_info in enumerate(users):
             user_name, user_xp = user_info
-            leaderboard_lines.append(f'{idx + 1}) <@{user_name}> {round(user_xp.xp)} [level {user_xp.calc_level(self.xp_manager.xp_settings)}]')
+            leaderboard_lines.append(f'{idx + 1}) <@{user_name}> {round(user_xp.xp)} xp [level {user_xp.calc_level(self.xp_manager.xp_settings)}]')
 
         await message.channel.send(f'Leaderboard:\n' + '\n'.join(leaderboard_lines))
     
