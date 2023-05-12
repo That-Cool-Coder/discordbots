@@ -3,6 +3,7 @@ import jsonpickle
 from dataclasses import dataclass
 from datetime import datetime
 import functools
+import enum
 
 from better_profanity import profanity
 profanity.load_censor_words()
@@ -36,11 +37,21 @@ class XpSettings:
     base_level_size = 1000
     level_size_exponent = 1.232
     xp_gain_exponent = 1.184
+    score_square_words = ['square', 'squared', 'quadratic', 'parabola'] # score is squared if you say this word
+
+# Info about what boosts were applied during the scoring of a message
+class XpGainFlags(enum.Flag):
+    NONE = 0
+    PROFANITY = enum.auto()
+    CAPITALS = enum.auto()
+    IMAGE_BOOST = enum.auto()
+    SQUARED = enum.auto()
 
 @dataclass
 class UserXp:
     xp: float
     image_send_timestamps: list[float]
+    squared_message_count = 0
 
     def clear_old_image_timestamps(self, current_time: float, settings: XpSettings):
         self.image_send_timestamps = [t for t in self.image_send_timestamps if
@@ -65,26 +76,38 @@ def apply_char_based_multiplier(existing_value: float, multiplier: float, num_ma
         return existing_value
     return existing_value + existing_value * (num_matching_chars / message_length * (multiplier - 1))
 
-def calculate_xp_gain(message: str, attachment_bytes: int, xp: UserXp, current_time: float, s: XpSettings) -> float:
+def calculate_xp_gain(message: str, attachment_bytes: int, xp: UserXp, current_time: float, s: XpSettings) -> (float, XpGainFlags):
+    flags = XpGainFlags.NONE
 
     length = len(message)
+
+    if any([x in message for x in s.score_square_words]):
+        length *= length
+        flags |= XpGainFlags.SQUARED
+
     value = length * s.base_char_score
     value = apply_exponent_with_break_even_point(value, s.message_length_exponent, s.message_length_break_even_point)
 
     profanity_count = calculate_str_delta(message, profanity.censor(message))
     profanity_count = apply_exponent_with_break_even_point(profanity_count, s.multiplier_char_exponent, s.multiplier_char_break_even_point)
+    if profanity_count:
+        flags |= XpGainFlags.PROFANITY
     value = apply_char_based_multiplier(value, s.profanity_multiplier * s.base_char_score, profanity_count, length)
 
     capital_count = [c.isupper() for c in message].count(True)
     capital_count = apply_exponent_with_break_even_point(capital_count, s.multiplier_char_exponent, s.multiplier_char_break_even_point)
+    if profanity_count:
+        flags |= XpGainFlags.CAPITALS
     value = apply_char_based_multiplier(value, s.capital_multiplier * s.base_char_score, capital_count, length)
     
     value += attachment_bytes * s.attachment_score_per_byte
 
     value *= s.xp_gain_exponent ** xp.calc_level(s)
     value *= s.image_multiplier ** len(xp.image_send_timestamps)
+    if len(xp.image_send_timestamps):
+        flags |= XpGainFlags.IMAGE_BOOST
 
-    return value
+    return (value, flags)
 
 def calculate_level_size(level: int, settings: XpSettings) -> float:
     multiplier = 1
@@ -141,7 +164,10 @@ class XpManager:
         user = self.get_user(username)
         user.clear_old_image_timestamps(datetime.utcnow().timestamp(), self.xp_settings)
         user.image_send_timestamps += [datetime.utcnow().timestamp()] * image_count
-        user.xp += calculate_xp_gain(message, attachment_bytes, user, datetime.utcnow().timestamp(), self.xp_settings)
+        score, flags = calculate_xp_gain(message, attachment_bytes, user, datetime.utcnow().timestamp(), self.xp_settings)
+        user.xp += score
+        if XpGainFlags.SQUARED in flags:
+            user.squared_message_count += 1
     
     def cleanup(self):
         if os.path.exists(self.lock_file_name):
@@ -154,6 +180,7 @@ class DumbXp(Bot):
     LEADERBOARD_PREFIX = '/leaderboard'
     LEADERBOARD_AMOUNT = 10
     SAVE_INTERVAL = 10
+    SQUARED_BOOST_OVERUSE_AMOUNT = 3
 
     def __init__(self, token: str, xp_settings: XpSettings = None):
         super().__init__(token)
@@ -189,6 +216,9 @@ class DumbXp(Bot):
         user = self.xp_manager.get_user(get_user_tag(message.author))
         old_level = user.calc_level(self.xp_manager.xp_settings)
         self.xp_manager.apply_xp_from_message(message.content, attachment_bytes, image_count, get_user_tag(message.author))
+        if user.squared_message_count >= self.SQUARED_BOOST_OVERUSE_AMOUNT:
+            await self.send_stop_squaring_message(message)
+            user.squared_message_count = 0
         if user.calc_level(self.xp_manager.xp_settings) != old_level:
             await self.send_level_up_message(message)
 
@@ -224,6 +254,9 @@ class DumbXp(Bot):
     async def send_level_up_message(self, message: discord.Message):
         user = self.xp_manager.get_user(get_user_tag(message.author))
         await message.channel.send(f'Congrats to {message.author.mention} for reaching level {user.calc_level(self.xp_manager.xp_settings)}!')
+    
+    async def send_stop_squaring_message(self, message: discord.Message):
+        await message.reply('Stop trying to game the system')
     
     def cleanup(self):
         self.xp_manager.cleanup()
