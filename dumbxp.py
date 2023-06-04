@@ -49,7 +49,7 @@ class XpGainFlags(enum.Flag):
 
 @dataclass
 class UserXp:
-    xp: float
+    xp: int
     image_send_timestamps: list[float]
     squared_message_count = 0
 
@@ -76,7 +76,7 @@ def apply_char_based_multiplier(existing_value: float, multiplier: float, num_ma
         return existing_value
     return existing_value + existing_value * (num_matching_chars / message_length * (multiplier - 1))
 
-def calculate_xp_gain(message: str, attachment_bytes: int, xp: UserXp, current_time: float, s: XpSettings) -> (float, XpGainFlags):
+def calculate_xp_gain(message: str, attachment_bytes: int, xp: UserXp, current_time: float, s: XpSettings) -> (int, XpGainFlags):
     flags = XpGainFlags.NONE
 
     length = len(message)
@@ -107,7 +107,7 @@ def calculate_xp_gain(message: str, attachment_bytes: int, xp: UserXp, current_t
     if len(xp.image_send_timestamps):
         flags |= XpGainFlags.IMAGE_BOOST
 
-    return (value, flags)
+    return (int(value), flags)
 
 def calculate_level_size(level: int, settings: XpSettings) -> float:
     multiplier = 1
@@ -165,7 +165,7 @@ class XpManager:
         user.clear_old_image_timestamps(datetime.utcnow().timestamp(), self.xp_settings)
         user.image_send_timestamps += [datetime.utcnow().timestamp()] * image_count
         score, flags = calculate_xp_gain(message, attachment_bytes, user, datetime.utcnow().timestamp(), self.xp_settings)
-        user.xp += score
+        user.xp = int(user.xp) + score
         if XpGainFlags.SQUARED in flags:
             user.squared_message_count += 1
     
