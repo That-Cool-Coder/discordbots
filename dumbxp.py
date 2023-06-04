@@ -175,9 +175,9 @@ class XpManager:
 
 class DumbXp(Bot):
     '''Intentionally stupid XP bot'''
-    START_PREFIX = '/startxp'
-    RANK_PREFIX = '/rank'
-    LEADERBOARD_PREFIX = '/leaderboard'
+    START_PREFIX = '/xpstart'
+    RANK_PREFIX = '/xprank'
+    LEADERBOARD_PREFIX = '/xpleaderboard'
     LEADERBOARD_AMOUNT = 10
     SAVE_INTERVAL = 10
     SQUARED_BOOST_OVERUSE_AMOUNT = 3
