@@ -15,7 +15,7 @@ class CounterBot(Bot):
     global_spam_enabled: bool = False, whitelist_active: bool = False, spam_interval: float = 1, config_password: str = ''):
         super().__init__(token)
         self.reply_probability = reply_probability
-        self.only_check_first_word = only_check_first_word # makes it count if you say "1094 test" for instance
+        self.only_check_first_word = only_check_first_word # if false, makes it count if you say "1094 test" for instance
         
         self.spam_interval = spam_interval
         self.global_spam_enabled = global_spam_enabled
